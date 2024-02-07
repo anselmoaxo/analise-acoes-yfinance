@@ -8,7 +8,8 @@ st.set_page_config(
         page_icon="chart_with_upwards_trend",
         layout="wide",
     )
-st.sidebar.write(" # Análise de Ações com Yfinance! ")
+st.sidebar.image("imagem/logo.svg")
+st.sidebar.write(" # Análise de Ações com Yfinance ")
 
 
 col1, col2 = st.columns(2)
@@ -19,7 +20,6 @@ tickers = {
     'PETROBRÁS -(PETR4)': 'PETR4.SA',
     'BRADESCO - (BBDC4)': 'BBDC4.SA',
     'MAGALU - (MGLU3) ': 'MGLU3.SA',
-    'IBOVESPA - (^BVSP)': '^BVSP',
     'AMBEV - (ABEV3)': 'ABEV3.SA',
     'VALE-(VALE3)': 'VALE3.SA',
     'GERDAU - (GGBR4)': 'GGBR4.SA'
@@ -31,6 +31,7 @@ ticker = st.sidebar.selectbox(
     list(tickers.keys()))
 
 ticker_selecionado = tickers[ticker]
+
     
 with col1:
     data_inicio = st.sidebar.date_input("Selecione a Data de Início", key="data_inicio")
@@ -40,28 +41,24 @@ with col2:
     data_fim = st.sidebar.date_input("Selecione a Data de Fim", key="data_fim")
     dt_final = pd.to_datetime(data_fim).strftime('%Y-%m-%d')
     
-informacao_ticker = yf.Ticker(ticker_selecionado).info
-st.write(f" # Informações do Ticker : {ticker} ")
+informacao_ticker = yf.Ticker(ticker_selecionado)
+historico_ticker = informacao_ticker.history(period='1d', start=dt_inicio, end=dt_final)
+
+st.write(" # :bar_chart: Análise de Ações com Yfinance ")
 
 st.divider()
 
-col1,col2,col3,col4 = st.columns(4)
+col1, col2, col3 = st.columns(3)
 
-col1.markdown(f"**Industria:** {informacao_ticker['industry']}")
-col1.markdown(f"**Setor :** {informacao_ticker['sector']}")
-market_cap_formatted = "{:,}".format(informacao_ticker['marketCap'])
-col1.markdown(f"**Valor do Mercado :** {market_cap_formatted}")
+col1.markdown(f"**Empresa:** {informacao_ticker.info['longName']}")
+col2.markdown(f"**Mercado :** {informacao_ticker.info['industryDisp']}")
+col3.markdown(f"**Preço Atual :** {informacao_ticker.info['currentPrice']} BRL")
 
 st.divider()
-
-historico_ticker = yf.download(ticker_selecionado, start=dt_inicio, end=dt_final )
 
 st.write('Grafico de Preço de Fechamento')
-st.line_chart(historico_ticker['Close'], use_container_width=True)
-    
-st.write('Gráfico de Volume')
-st.line_chart(historico_ticker['Volume'], use_container_width=True)
-    
+st.line_chart(historico_ticker['Close'])
+   
 st.write('Gráfico de Variação Percentual Diário')
 historico_ticker['Variação Diária (%)'] = historico_ticker['Close'].pct_change() * 100
 st.line_chart(historico_ticker['Variação Diária (%)'], use_container_width=True)
